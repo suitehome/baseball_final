@@ -155,15 +155,20 @@ module ascii_control(
         
     // ASCII ROM interface
     wire a = 'h30;
+    wire [9:0]x_shift;
+    wire [9:0] y_shift;
+    assign x_shift = (x >= 150 && x < 256+150)? x-'d150 : x;
+    assign y_shift = (y >= 50 && y < 128+50) ? y -'d50 : y;
+    
     assign rom_addr = {ascii_char_reg, char_row};   // ROM address is ascii code + row
     assign ascii_bit1 = rom_data1[~bit_addr];     // reverse bit order
 
         
-    assign ascii_char = {y[6:4], x[7:3]};   // 7-bit ascii code
-    assign char_row = y[3:0];               // row number of ascii character rom
-    assign bit_addr = x[2:0];               // column number of ascii character rom
+    assign ascii_char = {y_shift[6:4], x_shift[7:3]};   // 7-bit ascii code
+    assign char_row = y_shift[3:0];               // row number of ascii character rom
+    assign bit_addr = x_shift[2:0];               // column number of ascii character rom
     // "on" region in center of screen
-    assign ascii_bit_on1 = ((x >= 0 && x < 256) && (y >= 0 && y < 128)) ? ascii_bit1 : 1'b0;
+    assign ascii_bit_on1 = ((x >= 150 && x < 256+150) && (y >= 50 && y < 128+50)) ? ascii_bit1 : 1'b0;
 
 
    
