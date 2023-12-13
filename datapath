@@ -1,0 +1,70 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2023/12/05 15:46:01
+// Design Name: 
+// Module Name: datapath
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module datapath(
+                  input wire clk,
+                  input wire rst,
+                  input wire [2:0]input_sig,
+                  input wire guess_mode,
+                  input wire [11:0] input_number,
+                  input wire [7:0]ascii_char,
+                  input wire button_pressed_p1,button_pressed_p2,
+                  input wire on_game,
+                  
+                  output wire  [3:0] output_number,
+                  output reg [11:0]num_p1,num_p2,  
+                  output wire [1:0]strike,
+                  output  wire [1:0] ball,
+                  output wire [1:0]strike_player
+                  
+                  
+    );
+
+reg [11:0]guess_p1_array0,guess_p1_array1,guess_p1_array2,guess_p1_array3;
+reg [11:0]guess_p2_array0,guess_p2_array1,guess_p2_array2,guess_p2_array3 ;          
+reg [1:0] strike_p1_0, strike_p1_1, strike_p1_2, strike_p1_3;
+reg [1:0] ball_p1_0, ball_p1_1, ball_p1_2, ball_p1_3;
+reg [1:0] strike_p2_0,strike_p2_1,strike_p2_2,strike_p2_3;
+reg [1:0] ball_p2_0,ball_p2_1,ball_p2_2,ball_p2_3;
+wire [1:0] strike1, strike2, ball1, ball2;
+assign strike = strike1;
+assign ball = ball1;
+
+
+always@(posedge clk, posedge rst) 
+            if(rst)begin
+               num_p1 = 0;
+               num_p2 = 0;
+               end 
+            else if(input_sig == 'd1 && guess_mode == 0)
+                num_p1 = input_number;
+            else if(input_sig == 'd2 && guess_mode == 0)
+                num_p2 = input_number;      
+strike_ball b1(.guess_mode(guess_mode),.num_p1(num_p1), .num_p2(num_p2),.guess_num_p1(input_number),
+        .strike1(strike1),.strike2(strike2),.ball1(ball1),.ball2(ball2));
+
+guess guess(clk,rst,on_game,button_pressed_p1, button_pressed_p2,ascii_char,strike1, strike2, 
+                ball1, ball2,input_number,output_number,strike_player);
+
+           
+     
+endmodule
