@@ -1,0 +1,180 @@
+module ascii_control(
+    input clk,
+    input video_on,
+    input [9:0] x, y,
+    input [3:0]input_number,
+    input [3:0]cs_in,
+    input [1:0] ball,
+    input [1:0] strike,
+    input [2:0]button_cnt_p1,button_cnt_p2,
+    input on_game,
+    input game_over,
+    input[1:0] winner,
+    output [7:0] ascii_char_out,
+    output reg [11:0] rgb
+    );
+    
+
+ 
+    // signal declarations
+    wire [11:0] rom_addr;           // 11-bit text ROM address
+    wire [7:0] ascii_char;          // 7-bit ASCII character code
+    wire [3:0] char_row;            // 4-bit row of ASCII character
+    wire [2:0] bit_addr;            // column number of ROM data
+    wire [7:0] rom_data1;
+    wire ascii_bit1;
+    reg [6:0]ascii_char_reg;
+    
+    localparam S0 = 4'b0000, S1 = 4'b0001, S2 = 4'b0010, S3 = 4'b0011, S4 = 4'b0100,
+                     S5 = 4'b0101, S6 = 4'b0110, S7 = 4'b0111, S8 = 4'b1000;
+                       
+    assign ascii_char_out = ascii_char;
+    
+    
+    //pixel position ->  ascii_code mapping 
+    always@*
+      
+        case(ascii_char)
+        //player 1 number
+        default: ascii_char_reg = 'h00; 
+        'h00: ascii_char_reg = 'h50;   //P
+        'h01: ascii_char_reg = 'h4c;   //L
+        'h02: ascii_char_reg = 'h41;   //A
+        'h03: ascii_char_reg = 'h59;   //Y
+        'h04: ascii_char_reg = 'h45;   //E
+        'h05: ascii_char_reg = 'h52;   //R
+        'h06: ascii_char_reg = 'h31;   //2
+        
+ 
+        
+        'h17: ascii_char_reg = 'h50;   //P
+        'h18: ascii_char_reg = 'h4c;   //L
+        'h19: ascii_char_reg = 'h41;   //A
+        'h1a: ascii_char_reg = 'h59;   //Y
+        'h1b: ascii_char_reg = 'h45;   //E
+        'h1c: ascii_char_reg = 'h52;   //R
+        'h1d: ascii_char_reg = 'h32;   //1
+        
+        
+        
+        'h20: ascii_char_reg = (button_cnt_p1>='d1)&&on_game? {4'b0011,input_number}: 'h00; //player 1 first guess 
+        'h21: ascii_char_reg = (button_cnt_p1>='d1)&&on_game? {4'b0011,input_number}: 'h00;
+        'h22: ascii_char_reg = (button_cnt_p1>='d1)&&on_game? {4'b0011,input_number}: 'h00;       
+        
+        'h24: ascii_char_reg = (button_cnt_p1>='d1)&&on_game? {4'b0011,input_number}: 'h00;
+        'h25: ascii_char_reg = (button_cnt_p1>='d1)&&on_game? 'h42 : 'h00;                   //ball
+        'h26: ascii_char_reg = (button_cnt_p1>='d1)&&on_game? {4'b0011,input_number}: 'h00;
+        'h27: ascii_char_reg = (button_cnt_p1>='d1)&&on_game? 'h53 : 'h00;                    //strike            
+        
+        
+        'h37: ascii_char_reg = (button_cnt_p2>='d1)&&on_game? {4'b0011,input_number}: 'h00;//player 2 first guess 
+        'h38: ascii_char_reg = (button_cnt_p2>='d1)&&on_game? {4'b0011,input_number}: 'h00;
+        'h39: ascii_char_reg = (button_cnt_p2>='d1)&&on_game? {4'b0011,input_number}: 'h00;  
+
+        'h3b: ascii_char_reg = (button_cnt_p2>='d1)&&on_game? {4'b0011,input_number}: 'h00;
+        'h3c: ascii_char_reg = (button_cnt_p2>='d1)&&on_game? 'h42 : 'h00;                   //ball
+        'h3d: ascii_char_reg = (button_cnt_p2>='d1)&&on_game? {4'b0011,input_number}: 'h00;
+        'h3e: ascii_char_reg = (button_cnt_p2>='d1)&&on_game? 'h53 : 'h00;        //strike    
+          
+        'h40: ascii_char_reg = (button_cnt_p1>='d2)&&on_game? {4'b0011,input_number}: 'h00;  //player 1 second  guess 
+        'h41: ascii_char_reg = (button_cnt_p1>='d2)&&on_game? {4'b0011,input_number}: 'h00; 
+        'h42: ascii_char_reg = (button_cnt_p1>='d2)&&on_game? {4'b0011,input_number}: 'h00;           
+        
+        'h44: ascii_char_reg = (button_cnt_p1>='d2)&&on_game? {4'b0011,input_number}: 'h00;
+        'h45: ascii_char_reg = (button_cnt_p1>='d2)&&on_game? 'h42 : 'h00;                   //ball
+        'h46: ascii_char_reg = (button_cnt_p1>='d2)&&on_game? {4'b0011,input_number}: 'h00;
+        'h47: ascii_char_reg = (button_cnt_p1>='d2)&&on_game? 'h53 : 'h00; 
+        
+        'h57: ascii_char_reg = (button_cnt_p2>='d2)&&on_game? {4'b0011,input_number}: 'h00; //player 2 second guess 
+        'h58: ascii_char_reg = (button_cnt_p2>='d2)&&on_game? {4'b0011,input_number}: 'h00; 
+        'h59: ascii_char_reg = (button_cnt_p2>='d2)&&on_game? {4'b0011,input_number}: 'h00; 
+        
+        'h5b: ascii_char_reg = (button_cnt_p2>='d2)&&on_game? {4'b0011,input_number}: 'h00;
+        'h5c: ascii_char_reg = (button_cnt_p2>='d2)&&on_game? 'h42 : 'h00;                   //ball
+        'h5d: ascii_char_reg = (button_cnt_p2>='d2)&&on_game? {4'b0011,input_number}: 'h00;
+        'h5e: ascii_char_reg = (button_cnt_p2>='d2)&&on_game? 'h53 : 'h00; 
+        
+        'h60: ascii_char_reg = (button_cnt_p1>='d3)&&on_game? {4'b0011,input_number}: 'h00;  //player 1 third  guess 
+        'h61: ascii_char_reg = (button_cnt_p1>='d3)&&on_game? {4'b0011,input_number}: 'h00; 
+        'h62: ascii_char_reg = (button_cnt_p1>='d3)&&on_game? {4'b0011,input_number}: 'h00;  
+        
+        'h64: ascii_char_reg = (button_cnt_p1>='d3)&&on_game? {4'b0011,input_number}: 'h00;
+        'h65: ascii_char_reg = (button_cnt_p1>='d3)&&on_game? 'h42 : 'h00;                   //ball
+        'h66: ascii_char_reg = (button_cnt_p1>='d3)&&on_game? {4'b0011,input_number}: 'h00;
+        'h67: ascii_char_reg = (button_cnt_p1>='d3)&&on_game? 'h53 : 'h00;                    //strike
+        
+        'h77: ascii_char_reg = (button_cnt_p2>='d3)&&on_game? {4'b0011,input_number}: 'h00;//player 2 third guess 
+        'h78: ascii_char_reg = (button_cnt_p2>='d3)&&on_game? {4'b0011,input_number}: 'h00;
+        'h79: ascii_char_reg = (button_cnt_p2>='d3)&&on_game? {4'b0011,input_number}: 'h00;   
+
+        'h7b: ascii_char_reg = (button_cnt_p2>='d3)&&on_game? {4'b0011,input_number}: 'h00;
+        'h7c: ascii_char_reg = (button_cnt_p2>='d3)&&on_game? 'h42 : 'h00;                   //ball
+        'h7d: ascii_char_reg = (button_cnt_p2>='d3)&&on_game? {4'b0011,input_number}: 'h00;
+        'h7e: ascii_char_reg = (button_cnt_p2>='d3)&&on_game? 'h53 : 'h00;                   //strike    
+          
+        'h80: ascii_char_reg = (button_cnt_p1>='d4)&&on_game? {4'b0011,input_number}: 'h00; //player 1 fourth guess 
+        'h81: ascii_char_reg = (button_cnt_p1>='d4)&&on_game? {4'b0011,input_number}: 'h00;
+        'h82: ascii_char_reg = (button_cnt_p1>='d4)&&on_game? {4'b0011,input_number}: 'h00;      
+        
+        'h84: ascii_char_reg = (button_cnt_p1>='d4)&&on_game? {4'b0011,input_number}: 'h00;
+        'h85: ascii_char_reg = (button_cnt_p1>='d4)&&on_game? 'h42 : 'h00;                   //ball
+        'h86: ascii_char_reg = (button_cnt_p1>='d4)&&on_game? {4'b0011,input_number}: 'h00;
+        'h87: ascii_char_reg = (button_cnt_p1>='d4)&&on_game? 'h53 : 'h00; 
+        
+        'h97: ascii_char_reg = (button_cnt_p2>='d4)&&on_game? {4'b0011,input_number}: 'h00;//player 2 fourth guess 
+        'h98: ascii_char_reg = (button_cnt_p2>='d4)&&on_game? {4'b0011,input_number}: 'h00;
+        'h99: ascii_char_reg = (button_cnt_p2>='d4)&&on_game? {4'b0011,input_number}: 'h00;
+        
+        'h9b: ascii_char_reg = (button_cnt_p2>='d4)&&on_game? {4'b0011,input_number}: 'h00;
+        'h9c: ascii_char_reg = (button_cnt_p2>='d4)&&on_game? 'h42 : 'h00;                   //ball
+        'h9d: ascii_char_reg = (button_cnt_p2>='d4)&&on_game? {4'b0011,input_number}: 'h00;
+        'h9e: ascii_char_reg = (button_cnt_p2>='d4)&&on_game? 'h53 : 'h00;  
+        
+        'ha4: ascii_char_reg = (game_over)? 'h4f : 'h00;          
+        'ha5: ascii_char_reg = (game_over)? 'h56 : 'h00;  
+        'ha6: ascii_char_reg = (game_over)? 'h45 : 'h00;  
+        'ha7: ascii_char_reg = (game_over)? 'h52 : 'h00;      
+          
+            'hc4: ascii_char_reg = (winner == 2'b01)?  'h50:'h00;
+            'hc5: ascii_char_reg = (winner == 2'b01)?  'h31:'h00;
+            'hc6: ascii_char_reg = 'h00;
+            'hc7: ascii_char_reg = (winner == 2'b01)? 'h57:'h00;  
+            
+            'hd4: ascii_char_reg = (winner == 2'b10)?'h50:'h00;
+            'hd5: ascii_char_reg = (winner == 2'b10)?'h32:'h00;
+            'hd6: ascii_char_reg = 'h00;  //P1 W
+            'hd7: ascii_char_reg = (winner == 2'b10)? 'h57:'h00;
+        endcase  
+      
+
+
+    // instantiate ASCII ROM
+    ascii_rom rom1(.clk(clk), .addr(rom_addr),.scancode(scancode), .data(rom_data1),.offset(offset));
+    
+
+        
+    // ASCII ROM interface
+    wire a = 'h30;
+    assign rom_addr = {ascii_char_reg, char_row};   // ROM address is ascii code + row
+    assign ascii_bit1 = rom_data1[~bit_addr];     // reverse bit order
+
+        
+    assign ascii_char = {y[6:4], x[7:3]};   // 7-bit ascii code
+    assign char_row = y[3:0];               // row number of ascii character rom
+    assign bit_addr = x[2:0];               // column number of ascii character rom
+    // "on" region in center of screen
+    assign ascii_bit_on1 = ((x >= 0 && x < 256) && (y >= 0 && y < 128)) ? ascii_bit1 : 1'b0;
+
+
+   
+    // rgb multiplexing circuit
+    always @*
+        if(~video_on)
+            rgb = 12'h000;      // blank
+        else
+            if(ascii_bit_on1)
+                rgb = 12'hF00;
+            else
+                rgb = 12'h000;  // white background
+   
+endmodule
