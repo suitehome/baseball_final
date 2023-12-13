@@ -118,9 +118,9 @@ output wire [1:0] strike_player
             
        always@*
             case(ascii_char)
-                'h20: output_number = guess1[11:8];    //number p1
-                'h21: output_number = guess1[7:4];
-                'h22: output_number = guess1[3:0];
+                'h20: output_number = guess_p1_array0[11:8];    //number p1
+                'h21: output_number = guess_p1_array0[7:4];
+                'h22: output_number = guess_p1_array0[3:0];
                  
                 'h24: output_number = {2'b00,ball_p1_0};                             //ball and strike 
                 'h26: output_number = {2'b00,strike_p1_0};
