@@ -1,0 +1,103 @@
+`timescale 1ns / 1ps
+module controller(input wire clk,rst,enter,
+                  input wire guess_mode,
+                  input wire [2:0] input_sig,
+                  input wire [7:0]scancode,
+                  input wire [1:0] strike_player,
+                  input wire [2:0] button_press_cnt_p1,
+                  input wire [2:0] button_press_cnt_p2,
+                      
+                 
+                  input wire [2:0]button_cnt_p1,button_cnt_p2,
+                  
+                  output wire [3:0]cs_out,             
+                  output wire [1:0]winner,
+                  
+                  output wire game_over,
+                  output wire on_game
+                 
+                  
+                  
+    );  
+    
+    
+    wire write_en;
+
+    reg [23:0] current_num,num_s,num_d;
+    wire wren_L2H;
+    wire enteron;
+    
+    reg cnt;
+   
+    
+
+    reg [3:0]cs, next_state;
+    reg enteron_s;
+    reg enteron_d;
+    reg [2:0]try_cnt;
+    assign cs_out = cs;
+  
+
+    localparam S0 = 4'b0000, S1 = 4'b0001, S2 = 4'b0010, S3 = 4'b0011, S4 = 4'b0100,
+                     S5 = 4'b0101, S6 = 4'b0110, S7 = 4'b0111, S8 = 4'b1000;
+ 
+   always@(posedge clk, posedge rst)       
+        if(rst)
+           cs <= S0;
+         else 
+           cs <= next_state;
+           
+   
+   
+   always @*
+    case (cs)
+    S0: if(input_sig == 'd1 && guess_mode == 'd0)
+             next_state = S1;
+        else 
+            next_state = S0; //player 1's private number 
+            
+    S1: if(input_sig == 'd2 && guess_mode == 'd0) 
+            next_state = S2; 
+        else 
+            next_state = S1;//player 2's private number 
+            
+    S2: if(input_sig == 'd1 && guess_mode == 'd1) 
+            next_state = S3; 
+        else
+            next_state = S2;//player 1 press guess button 
+            
+    S3: if(input_sig == 'd1 && guess_mode == 'd1)
+             next_state = S3;  //while button is being pressed
+        else if(strike_player=='d1) 
+             next_state = S4;  //if success go s4
+        else if(button_press_cnt_p2+button_press_cnt_p1 >= 'd8)
+             next_state = S8;
+        else
+             next_state = S5;   //else player 2 t urn
+             
+    S4: next_state = S4; //PLAYER 1 strike_player
+    
+    S5: if(input_sig == 'd2 && guess_mode == 'd1) //player 2 press guess button 
+            next_state = S6;
+        else 
+            next_state = S5;
+    S6: if(input_sig == 'd2 && guess_mode == 1)
+             next_state = S6;  //while button is being pressed
+        else if(strike_player=='d2)
+             next_state = S7;   //player 2's success go s7
+        else if(button_press_cnt_p2+button_press_cnt_p1 >= 'd8)
+             next_state = S8;
+        else
+             next_state = S2;   //else another try 
+             
+    S7: next_state = S7;        //PLAYER 2 strike_player
+    S8: next_state = S8;
+    default: next_state = S0;  
+     
+    endcase
+   
+   assign on_game = ~(cs == S4)&& ~(cs == S7) &&~(cs == S8);
+   assign winner = (cs == S4) + (cs == S7)*2;
+   assign game_over = (cs == S8); //max = 4 try 
+
+endmodule
